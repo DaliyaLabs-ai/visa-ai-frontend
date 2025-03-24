@@ -29,6 +29,10 @@ export function useNavigation() {
     router.push("/onboarding")
   }, [router])
 
+  const navigateToConsultancyOnboarding = useCallback(() => {
+    router.push("/consultancy-onboarding")
+  }, [router])
+
   const handleAuthRedirect = useCallback(() => {
     if (!isAuthenticated) {
       router.push("/login")
@@ -37,6 +41,11 @@ export function useNavigation() {
 
     if (user?.userType === "student" && !user.isOnboarded) {
       router.push("/onboarding")
+      return
+    }
+
+    if (user?.userType === "consultancy" && !user.isOnboarded) {
+      router.push("/consultancy-onboarding")
       return
     }
 
@@ -49,6 +58,7 @@ export function useNavigation() {
     navigateToHome,
     navigateToDashboard,
     navigateToOnboarding,
+    navigateToConsultancyOnboarding,
     handleAuthRedirect,
     currentPath: pathname,
   }

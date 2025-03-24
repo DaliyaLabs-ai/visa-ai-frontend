@@ -91,7 +91,7 @@ export default function SignupPage() {
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label>Name</Label>
                 <Input
                   id="name"
                   type="text"
@@ -106,7 +106,7 @@ export default function SignupPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label>Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -121,7 +121,7 @@ export default function SignupPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label>Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -136,7 +136,7 @@ export default function SignupPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
+                <Label>Confirm Password</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -158,14 +158,14 @@ export default function SignupPage() {
                   className="flex flex-col space-y-1"
                 >
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="student" id="student" />
-                    <Label htmlFor="student" className="cursor-pointer">
+                    <RadioGroupItem value="student" />
+                    <Label className="cursor-pointer">
                       Student
                     </Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="consultancy" id="consultancy" />
-                    <Label htmlFor="consultancy" className="cursor-pointer">
+                    <RadioGroupItem value="consultancy" />
+                    <Label className="cursor-pointer">
                       Consultancy
                     </Label>
                   </div>

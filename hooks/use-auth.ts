@@ -45,7 +45,7 @@ export function useAuth() {
         email,
         name,
         userType,
-        isOnboarded: userType === "consultancy", // Consultancies don't need onboarding for now
+        isOnboarded: false, 
       }
 
       // Store in localStorage
