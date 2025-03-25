@@ -1,0 +1,65 @@
+import type { RegisterData, LoginData, LoginError, LoginResponse } from '@/types/auth'
+import type { StudentProfileData } from '@/types/profile'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL
+
+export async function register(data: RegisterData) {
+  const response = await fetch(`${API_URL}/auth/register`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.message || 'Failed to register')
+  }
+
+  return response.json()
+}
+
+export async function login(data: LoginData) {
+  const response = await fetch(`${API_URL}/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+
+  const result = await response.json()
+
+  if (!response.ok) {
+    throw result as LoginError
+  }
+
+  return result as LoginResponse
+}
+
+export async function submitStudentProfile(data: StudentProfileData) {
+  console.log("submitting profile ....")
+  const accessToken = localStorage.getItem('accessToken')
+  
+  if (!accessToken) {
+    throw new Error('No access token found')
+  }
+
+  const response = await fetch(`${API_URL}/profile`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+
+  const result = await response.json()
+
+  if (!response.ok) {
+    throw result
+  }
+
+  return result
+} 

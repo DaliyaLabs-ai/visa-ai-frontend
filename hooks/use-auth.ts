@@ -1,16 +1,9 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
+import type { User } from "@/types/auth"
 
 export type UserType = "student" | "consultancy"
-
-export interface User {
-  id: string
-  email: string
-  name: string
-  userType: UserType
-  isOnboarded: boolean
-}
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
@@ -41,11 +34,19 @@ export function useAuth() {
 
       // Create a dummy user
       const newUser: User = {
-        id: Math.random().toString(36).substring(2, 15),
+        userId: Math.random().toString(36).substring(2, 15),
+        createdAt: new Date().toISOString(),
+        isActive: true,
+        id: Math.floor(Math.random() * 1000),
         email,
-        name,
-        userType,
-        isOnboarded: false, 
+        fullName: name,
+        email_verified: false,
+        email_verified_at: null,
+        blocked: false,
+        provider: null,
+        blocked_reason: null,
+        profile: null,
+        roles: [userType]
       }
 
       // Store in localStorage
@@ -94,7 +95,11 @@ export function useAuth() {
   }, [])
 
   const updateUser = useCallback(
-    (updates: Partial<User>) => {
+    (updates: Partial<User> | null) => {
+      if (updates === null) {
+        setUser(null)
+        return
+      }
       if (!user) return
 
       const updatedUser = { ...user, ...updates }

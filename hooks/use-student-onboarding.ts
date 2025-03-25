@@ -2,6 +2,9 @@
 
 import { useState } from "react"
 import { useAuthContext } from "@/contexts/auth-context"
+import { submitStudentProfile } from '@/lib/api-client'
+import type { StudentProfileData } from '@/types/profile'
+import { Gender } from '@/types/profile'
 
 export interface StudentProfile {
   academicProfile: {
@@ -18,6 +21,8 @@ export interface StudentProfile {
   englishProficiency: string
   projectsAndSkills: string
   financialSituation: string
+  gender: Gender
+  dob: string
 }
 
 export function useStudentOnboarding() {
@@ -26,27 +31,43 @@ export function useStudentOnboarding() {
   const [error, setError] = useState<string | null>(null)
 
   const submitOnboarding = async (profile: StudentProfile) => {
-    if (!user || user.userType !== "student") {
-      setError("Only students can complete this onboarding")
-      return
-    }
+
+    // if (!user || user.userType !== "student") {
+    //   setError("Only students can complete this onboarding")
+    //   return
+    // }
 
     setLoading(true)
     setError(null)
 
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      // Store profile in localStorage
-      localStorage.setItem(`profile-${user.id}`, JSON.stringify(profile))
+    try {
+      // Transform the profile data to match API requirements
+      const profileData: StudentProfileData = {
+        college: profile.academicProfile.college,
+        highSchoolName: profile.academicProfile.highSchoolName,
+        highSchoolGraduationYear: new Date(profile.academicProfile.graduationYear).toISOString(),
+        highSchoolGpa: parseFloat(profile.academicProfile.highSchoolGPA),
+        satTotalScore: profile.satScore.total,
+        satMathRank: profile.satScore.math,
+        satVerbalScore: profile.satScore.verbal,
+        satEnglishProficiencyScores: parseInt(profile.englishProficiency) || 0,
+        projectsAndSkills: profile.projectsAndSkills,
+        financialSituation: profile.financialSituation,
+        gender: profile.gender,
+        dob: profile.dob,
+      }
+
+      // Submit to API
+      await submitStudentProfile(profileData)
 
       // Update user as onboarded
       updateUser({ isOnboarded: true })
 
       return true
     } catch (err) {
-      setError("Failed to save profile. Please try again.")
+      const error = err as any
+      setError(error?.description?.message?.[0] || error?.message || "Failed to save profile. Please try again.")
       return false
     } finally {
       setLoading(false)

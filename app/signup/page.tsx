@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import type { UserType } from "@/hooks/use-auth"
+import { register } from "@/lib/api-client"
 
 interface SignupFormValues {
   name: string
@@ -20,6 +21,18 @@ interface SignupFormValues {
   password: string
   confirmPassword: string
   userType: UserType
+}
+
+interface ApiError {
+  success: false
+  message: string
+  timestamp: string
+  status: number
+  description: {
+    message: string[]
+    error: string
+    statusCode: number
+  }
 }
 
 export default function SignupPage() {
@@ -37,7 +50,7 @@ export default function SignupPage() {
   }
 
   const validationRules = {
-    name: (value: string) => (value.trim() ? null : "Name is required"),
+    name: (value: string) => (value.trim() ? null : "Full name is required"),
     email: (value: string) => {
       if (!value.trim()) return "Email is required"
       if (!/\S+@\S+\.\S+/.test(value)) return "Email is invalid"
@@ -46,6 +59,9 @@ export default function SignupPage() {
     password: (value: string) => {
       if (!value) return "Password is required"
       if (value.length < 6) return "Password must be at least 6 characters"
+      if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/.test(value)) {
+        return "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
+      }
       return null
     },
     confirmPassword: (value: string) => {
@@ -69,11 +85,22 @@ export default function SignupPage() {
     setError(null)
 
     try {
-      await signup(form.values.email, form.values.password, form.values.name, form.values.userType)
+      await register({
+        email: form.values.email,
+        password: form.values.password,
+        password2: form.values.password,
+        fullName: form.values.name,
+      })
 
+      await signup(form.values.email, form.values.password, form.values.name, form.values.userType)
       handleAuthRedirect()
     } catch (err) {
-      setError("Failed to sign up. Please try again.")
+      if (err && typeof err === 'object' && 'description' in err) {
+        const apiError = err as ApiError
+        setError(apiError.description.message?.[0] || apiError.message || "Failed to sign up. Please try again.")
+      } else {
+        setError("Failed to sign up. Please try again.")
+      }
     } finally {
       setIsSubmitting(false)
     }

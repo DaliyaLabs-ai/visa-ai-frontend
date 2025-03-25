@@ -14,6 +14,8 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Gender } from '@/types/profile'
+import type { User } from "@/types/auth"
 
 export default function OnboardingPage() {
   const { user } = useAuthContext()
@@ -24,7 +26,7 @@ export default function OnboardingPage() {
   const [shouldRender, setShouldRender] = useState(false)
 
   useEffect(() => {
-    if (user && user.userType === "student" && !user.isOnboarded) {
+    if (user && !user.profile) {
       setShouldRender(true)
     } else {
       navigateToDashboard()
@@ -46,6 +48,8 @@ export default function OnboardingPage() {
     englishProficiency: "",
     projectsAndSkills: "",
     financialSituation: "",
+    gender: Gender.OTHER,
+    dob: "",
   }
 
   const validationRules = {
@@ -59,6 +63,8 @@ export default function OnboardingPage() {
     englishProficiency: (value: string) => (value ? null : "English proficiency information is required"),
     projectsAndSkills: (value: string) => (value ? null : "Projects and skills information is required"),
     financialSituation: (value: string) => (value ? null : "Financial situation information is required"),
+    gender: (value: Gender) => (value ? null : "Gender is required"),
+    dob: (value: string) => (value ? null : "Date of birth is required"),
   }
 
   const form = useFormValidation(initialValues, validationRules)
@@ -74,7 +80,10 @@ export default function OnboardingPage() {
     setError(null)
 
     try {
-      const success = await submitOnboarding(form.values)
+      console.log("submitting ....")
+      const success
+       = await submitOnboarding(form.values)
+      console.log("success", success)
       if (success) {
         navigateToDashboard()
       }
@@ -266,6 +275,40 @@ export default function OnboardingPage() {
                   />
                   {form.touched.financialSituation && form.errors.financialSituation && (
                     <p className="text-sm text-destructive">{form.errors.financialSituation}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Gender</Label>
+                  <Select
+                    value={form.values.gender}
+                    onValueChange={(value) => form.handleChange("gender", value as Gender)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select your gender" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={Gender.MALE}>Male</SelectItem>
+                      <SelectItem value={Gender.FEMALE}>Female</SelectItem>
+                      <SelectItem value={Gender.OTHER}>Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {form.touched.gender && form.errors.gender && (
+                    <p className="text-sm text-destructive">{form.errors.gender}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Date of Birth</Label>
+                  <Input
+                    type="date"
+                    value={form.values.dob}
+                    onChange={(e) => form.handleChange("dob", e.target.value)}
+                    onBlur={() => form.handleBlur("dob")}
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                  {form.touched.dob && form.errors.dob && (
+                    <p className="text-sm text-destructive">{form.errors.dob}</p>
                   )}
                 </div>
 

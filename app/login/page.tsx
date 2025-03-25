@@ -6,21 +6,52 @@ import { useState } from "react"
 import { useAuthContext } from "@/contexts/auth-context"
 import { useNavigation } from "@/hooks/use-navigation"
 import { useFormValidation } from "@/hooks/use-form-validation"
+import { login } from "@/lib/api-client"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import type { LoginError, StoredUserData } from '@/types/auth'
 
 interface LoginFormValues {
   email: string
   password: string
 }
 
+interface LoginResponse {
+  success: true
+  source: string
+  data: {
+    accessToken: string
+    refreshToken: string
+    existingUser: {
+      userId: string
+      createdAt: string
+      isActive: boolean
+      id: number
+      email: string
+      fullName: string
+      email_verified: boolean
+      email_verified_at: string | null
+      blocked: boolean
+      provider: string | null
+      blocked_reason: string | null
+      profile: any | null
+      roles: string[]
+    }
+  }
+  timestamp: string
+  message: string
+  status: number
+}
+
 export default function LoginPage() {
-  const { login } = useAuthContext()
+  const { login: loginContext } = useAuthContext()
   const { handleAuthRedirect } = useNavigation()
+  const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -54,10 +85,56 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      await login(form.values.email, form.values.password)
+      const response = await login({
+        email: form.values.email,
+        password: form.values.password,
+      })
+
+      // Store tokens and user data
+      localStorage.setItem('accessToken', response.data.accessToken)
+      localStorage.setItem('refreshToken', response.data.refreshToken)
+
+      const userData = {
+        id: response.data.existingUser.userId,
+        email: response.data.existingUser.email,
+        name: response.data.existingUser.fullName,
+        isActive: response.data.existingUser.isActive,
+        isVerified: response.data.existingUser.email_verified,
+        roles: response.data.existingUser.roles,
+        profile: response.data.existingUser.profile
+      }
+      localStorage.setItem('user', JSON.stringify(userData))
+
+      // Update auth context
+      await loginContext(form.values.email, form.values.password)
+
+      // Handle redirects based on user status
+      if (!response.data.existingUser.isActive) {
+        router.push(`/verify?email=${response.data.existingUser.email}`)
+        return
+      }
+
+      // Redirect to onboarding if profile is null or isActive is false
+      if (!response.data.existingUser.profile) {
+        router.push('/onboarding')
+        return
+      }
+
       handleAuthRedirect()
     } catch (err) {
-      setError("Invalid email or password")
+      // Handle both error formats (with and without description)
+      if (err && typeof err === 'object') {
+        const apiError = err as LoginError
+        if (apiError.description) {
+          // Handle validation errors
+          setError(apiError.description.message?.[0] || apiError.message)
+        } else {
+          // Handle other errors like inactive account
+          setError(apiError.message || "Failed to log in. Please try again.")
+        }
+      } else {
+        setError("Failed to log in. Please try again.")
+      }
     } finally {
       setIsSubmitting(false)
     }

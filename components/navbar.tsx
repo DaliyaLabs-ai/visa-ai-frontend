@@ -5,10 +5,17 @@ import { useAuthContext } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { useNavigation } from "@/hooks/use-navigation"
+import { useRouter } from "next/navigation"
 
 export function Navbar() {
   const { isAuthenticated, user, logout } = useAuthContext()
   const { navigateToLogin, navigateToSignup, navigateToDashboard } = useNavigation()
+  const router = useRouter()
+
+  const handleLogout = () => {
+    logout()
+    router.push('/login')
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -57,7 +64,7 @@ export function Navbar() {
                   <DropdownMenuItem onClick={navigateToDashboard}>
                     Dashboard
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={logout}>
+                  <DropdownMenuItem onClick={handleLogout}>
                     Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
