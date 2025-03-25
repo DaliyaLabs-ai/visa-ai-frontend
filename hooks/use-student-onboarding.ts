@@ -58,6 +58,8 @@ export function useStudentOnboarding() {
         dob: profile.dob,
       }
 
+      console.log("profileData: ", profileData);
+
       // Submit to API
       await submitStudentProfile(profileData)
 
@@ -66,6 +68,7 @@ export function useStudentOnboarding() {
 
       return true
     } catch (err) {
+      console.log("error here: ", err);
       const error = err as any
       setError(error?.description?.message?.[0] || error?.message || "Failed to save profile. Please try again.")
       return false

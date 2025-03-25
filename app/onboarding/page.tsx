@@ -80,7 +80,7 @@ export default function OnboardingPage() {
     setError(null)
 
     try {
-      console.log("submitting ....")
+      console.log("submitting ....: ", form.values)
       const success
        = await submitOnboarding(form.values)
       console.log("success", success)
