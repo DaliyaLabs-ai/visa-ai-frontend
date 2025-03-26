@@ -22,6 +22,7 @@ export interface LoginError {
   }
 }
 
+export type UserType = "consultancy" | "student"
 export interface User {
   userId: string
   createdAt: string
@@ -36,6 +37,8 @@ export interface User {
   blocked_reason: string | null
   profile: any | null
   roles: string[]
+  userType: UserType;
+  isOnboarded: boolean;
 }
 
 export interface LoginResponse {

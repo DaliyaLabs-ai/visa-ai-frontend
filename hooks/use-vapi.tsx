@@ -5,12 +5,13 @@ import {
   useRef,
   useState,
   useCallback,
+  useEffect,
 } from "react";
 import Vapi from "@vapi-ai/web";
 import { createMeeting, rateMeeting } from "@/lib/api-client";
 
-const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY || ""; // Replace with your actual public key
-const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID || ""; // Replace with your actual assistant ID
+const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY || "";
+const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID || "";
 
 // Create context
 const VapiContext = createContext<ReturnType<typeof useVapiState> | null>(null);
@@ -26,7 +27,7 @@ const useVapiState = () => {
   const vapiRef = useRef<any>(null);
   const [callId, setCallId] = useState<string | null>(null);
 
-  console.log("callId: ", callId);
+  console.log("publicKey: ", publicKey);
 
   const initializeAssistant = useCallback((selectedAssistantId: string) => {
     if (vapiRef.current) {
@@ -105,7 +106,6 @@ const useVapiState = () => {
       ) {
         const command = message.functionCall.parameters.url.toLowerCase();
         console.log(command);
-        // const newUrl = routes[command];
         if (command) {
           window.location.href = command;
         } else {
@@ -117,11 +117,6 @@ const useVapiState = () => {
     vapiInstance.on("error", (e: Error) => {
       console.error("Vapi error:", e);
     });
-
-    // // Start the call automatically when initialized
-    // vapiInstance.start(selectedAssistantId).catch((err) => {
-    //   console.error("Error starting Vapi session:", err);
-    // });
   }, []);
 
   const toggleCall = async (selectedAssistantId: string) => {
@@ -164,6 +159,16 @@ const useVapiState = () => {
       setIsMuted(newMuteState);
     }
   };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (vapiRef.current) {
+        vapiRef.current.stop();
+        vapiRef.current = null;
+      }
+    };
+  }, []);
 
   return {
     volumeLevel,

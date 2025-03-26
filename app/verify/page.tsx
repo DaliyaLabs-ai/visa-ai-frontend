@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { useSearchParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useFormValidation } from "@/hooks/use-form-validation"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
@@ -29,13 +29,12 @@ interface VerifyError {
 
 export default function VerifyPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
 
   const initialValues: VerifyFormValues = {
-    email: searchParams.get("email") || "",
+    email: "",
     otp: "",
   }
 
@@ -115,7 +114,6 @@ export default function VerifyPage() {
                   onChange={(e) => form.handleChange("email", e.target.value)}
                   onBlur={() => form.handleBlur("email")}
                   placeholder="Enter your email"
-                  disabled={!!searchParams.get("email")}
                 />
                 {form.touched.email && form.errors.email && (
                   <p className="text-sm text-destructive">{form.errors.email}</p>

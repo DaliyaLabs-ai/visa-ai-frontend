@@ -57,7 +57,7 @@ export function Navbar() {
                     variant="outline" 
                     className="min-w-[120px] justify-center"
                   >
-                    {user?.name || "Account"}
+                    {user?.fullName || "Account"}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-[200px]">

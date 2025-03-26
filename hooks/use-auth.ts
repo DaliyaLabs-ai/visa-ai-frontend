@@ -46,7 +46,11 @@ export function useAuth() {
         provider: null,
         blocked_reason: null,
         profile: null,
-        roles: [userType]
+        roles: [userType],
+
+        // hardcoded for now, will be dynamic once api is ready
+        userType: "student",
+        isOnboarded: false
       }
 
       // Store in localStorage
