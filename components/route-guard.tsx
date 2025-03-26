@@ -13,20 +13,22 @@ interface RouteGuardProps {
 }
 
 export function RouteGuard({ children, requireAuth = false, requireOnboarding = false }: RouteGuardProps) {
-  const { user, isAuthenticated } = useAuthContext()
+  const { user, isAuthenticated, isLoading } = useAuthContext()
   const { navigateToLogin, navigateToOnboarding } = useNavigation()
 
   useEffect(() => {
-    if (requireAuth && !isAuthenticated) {
+    if (!isLoading && requireAuth && !isAuthenticated) {
       navigateToLogin()
-      return
     }
 
     if (requireOnboarding && user?.userType === "student" && !user.isOnboarded) {
       navigateToOnboarding()
-      return
     }
-  }, [isAuthenticated, navigateToLogin, navigateToOnboarding, requireAuth, requireOnboarding, user])
+  }, [isLoading, isAuthenticated, requireAuth, navigateToLogin, requireOnboarding, user, navigateToOnboarding])
+
+  if (isLoading) {
+    return null
+  }
 
   if (requireAuth && !isAuthenticated) {
     return null

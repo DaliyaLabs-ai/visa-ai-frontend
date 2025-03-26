@@ -9,6 +9,7 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isDataLoading, setDataIsLoading] = useState(true)
 
   // Initialize auth state from localStorage on mount
   useEffect(() => {
@@ -123,7 +124,7 @@ export function useAuth() {
     login,
     logout,
     updateUser,
-    isAuthenticated: !!user,
+    isAuthenticated:  !!user,
   }
 }
 

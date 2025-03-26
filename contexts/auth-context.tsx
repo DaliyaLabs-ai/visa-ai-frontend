@@ -21,6 +21,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { user, loading, error, signup, login, updateUser, isAuthenticated } = useAuth()
 
+  console.log("isAuthenticated: ", isAuthenticated)
+
   const logout = () => {
     auth.clearAuth() // Using the auth utility's clearAuth method
     updateUser(null) // Update the auth context state

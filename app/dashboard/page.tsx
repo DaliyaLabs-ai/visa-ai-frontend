@@ -7,6 +7,7 @@ import { useStudentOnboarding } from "@/hooks/use-student-onboarding"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import Link from "next/link"
 
 export default function DashboardPage() {
   const { user, isAuthenticated } = useAuthContext()
@@ -15,7 +16,9 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigateToLogin()
+      // navigateToLogin()
+      // do nothing now
+      navigateToOnboarding()
     } else if (user?.userType === "student" && !user.isOnboarded) {
       navigateToOnboarding()
     }
@@ -33,7 +36,7 @@ export default function DashboardPage() {
       <main className="flex-1 p-4">
         <div className="container mx-auto">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold">Welcome, {user.name}</h1>
+            <h1 className="text-3xl font-bold">Welcome, {user.fullName}</h1>
             <p className="text-muted-foreground">
               {user.userType === "student"
                 ? "Prepare for your F1 visa interview with our AI agents"
@@ -53,7 +56,9 @@ export default function DashboardPage() {
                 </p>
               </CardContent>
               <CardFooter>
-                <Button className="w-full">Start Practice</Button>
+                <Button className="w-full" asChild>
+                  <Link href="/call">Start Practice</Link>
+                </Button>
               </CardFooter>
             </Card>
 
@@ -66,8 +71,8 @@ export default function DashboardPage() {
                 <p className="text-sm text-muted-foreground">You haven't completed any practice interviews yet.</p>
               </CardContent>
               <CardFooter>
-                <Button variant="outline" className="w-full">
-                  View History
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href="/history">View History</Link>
                 </Button>
               </CardFooter>
             </Card>
