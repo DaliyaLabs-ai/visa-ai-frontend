@@ -98,3 +98,53 @@ export async function rateMeeting(meetingId: string, rating: number) {
 
   console.log("meeting rated: ", response.json());
 }
+
+interface Wallet {
+  id: number;
+  createdAt: string;
+  isActive: boolean;
+  user: string;
+  balance: number;
+}
+
+interface Transaction {
+  id: number;
+  createdAt: string;
+  isActive: boolean;
+  wallet: number;
+  amount: number;
+  type: 'bonus' | 'debit' | 'credit';
+  description: string;
+}
+
+export const getWallet = async (): Promise<Wallet> => {
+  const accessToken = localStorage.getItem('accessToken');
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/wallet`, {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch wallet');
+  }
+
+  const data = await response.json();
+  return data.data;
+};
+
+export const getTransactions = async (): Promise<Transaction[]> => {
+  const accessToken = localStorage.getItem('accessToken');
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/wallet/transactions`, {
+    headers: {
+      'Authorization': `Bearer ${accessToken}`
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch transactions');
+  }
+
+  const data = await response.json();
+  return data.data;
+};

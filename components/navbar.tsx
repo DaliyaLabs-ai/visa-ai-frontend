@@ -67,6 +67,7 @@ export function Navbar() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-[200px]">
+                  <DropdownMenuItem onClick={() => router.push("/profile")}>Profile</DropdownMenuItem>
                   <DropdownMenuItem onClick={navigateToDashboard}>
                     Dashboard
                   </DropdownMenuItem>

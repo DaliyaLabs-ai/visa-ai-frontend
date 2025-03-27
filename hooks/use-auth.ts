@@ -48,7 +48,6 @@ export function useAuth() {
         blocked_reason: null,
         profile: null,
         roles: [userType],
-
         // hardcoded for now, will be dynamic once api is ready
         userType: "student",
         isOnboarded: false
