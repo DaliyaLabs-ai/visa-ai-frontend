@@ -2,6 +2,7 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import Vapi from "@vapi-ai/web";
 import { createMeeting, rateMeeting } from "@/lib/api-client";
+import { RatingValue } from "@/types/call";
 
 const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY || "";
 
@@ -14,6 +15,9 @@ export const useVapiState = () => {
   >([]);
   const vapiRef = useRef<any>(null);
   const [callId, setCallId] = useState<string | null>(null);
+  const [rating, setRating] = useState<RatingValue>(1);
+  const [isRatingSubmitted, setIsRatingSubmitted] = useState(false);
+  const [hasCallEnded, setHasCallEnded] = useState(false);
 
   const initializeAssistant = useCallback((selectedAssistantId: string) => {
     if (vapiRef.current) {
@@ -26,12 +30,12 @@ export const useVapiState = () => {
 
     vapiInstance.on("call-start", () => {
       setIsSessionActive(true);
+      setHasCallEnded(false);
     });
 
     vapiInstance.on("call-end", async () => {
       setIsSessionActive(false);
-      setCallId(null);
-      setConversation([]);
+      setHasCallEnded(true);
     });
 
     vapiInstance.on("volume-level", (volume: number) => {
@@ -105,7 +109,6 @@ export const useVapiState = () => {
   const toggleCall = async (selectedAssistantId: string) => {
     try {
       if (isSessionActive) {
-        await rateMeeting(callId as string, 5);
         await vapiRef.current.stop();
       } else {
         const callData = await vapiRef.current.start(selectedAssistantId);
@@ -114,6 +117,20 @@ export const useVapiState = () => {
       }
     } catch (err) {
       console.error("Error toggling Vapi session:", err);
+    }
+  };
+
+  const submitRating = async (ratingValue: RatingValue) => {
+    try {
+      setIsRatingSubmitted(true);
+      await rateMeeting(callId as string, ratingValue);
+      setRating(ratingValue);
+      return true;
+    } catch (err) {
+      console.error("Error submitting rating:", err);
+      return false;
+    } finally {
+      setIsRatingSubmitted(false);
     }
   };
 
@@ -159,5 +176,10 @@ export const useVapiState = () => {
     toggleMute,
     isMuted,
     initializeAssistant,
+    callId,
+    submitRating,
+    setRating,
+    isRatingSubmitted,
+    hasCallEnded,
   };
 };
