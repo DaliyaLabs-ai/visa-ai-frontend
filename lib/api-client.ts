@@ -148,3 +148,35 @@ export const getTransactions = async (): Promise<Transaction[]> => {
   const data = await response.json();
   return data.data;
 };
+
+export const forgotPassword = async (email: string) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/forgot-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  if (!response.ok) {
+    throw await response.json();
+  }
+
+  return response.json();
+};
+
+export const resetPassword = async (email: string, otp: string, password: string) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email, otp, password }),
+  });
+
+  if (!response.ok) {
+    throw await response.json();
+  }
+
+  return response.json();
+};

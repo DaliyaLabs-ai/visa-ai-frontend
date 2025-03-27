@@ -6,7 +6,7 @@ import { useState } from "react"
 import { useAuthContext } from "@/contexts/auth-context"
 import { useNavigation } from "@/hooks/use-navigation"
 import { useFormValidation } from "@/hooks/use-form-validation"
-import { login } from "@/lib/api-client"
+import { login, forgotPassword, resetPassword } from "@/lib/api-client"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,6 +15,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import type { LoginError, StoredUserData } from '@/types/auth'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface LoginFormValues {
   email: string
@@ -54,6 +61,14 @@ export default function LoginPage() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [hasExistingOtp, setHasExistingOtp] = useState(false);
 
   const initialValues: LoginFormValues = {
     email: "",
@@ -140,6 +155,48 @@ export default function LoginPage() {
     }
   }
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsResetting(true);
+    setResetError(null);
+
+    try {
+      await forgotPassword(forgotEmail);
+      setIsOtpSent(true);
+    } catch (err) {
+      setResetError(err?.message || "Failed to send OTP. Please try again.");
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsResetting(true);
+    setResetError(null);
+
+    try {
+      await resetPassword(forgotEmail, otp, newPassword);
+      setShowForgotPassword(false);
+      setIsOtpSent(false);
+      setResetError(null);
+      // Clear the form
+      setForgotEmail("");
+      setOtp("");
+      setNewPassword("");
+    } catch (err) {
+      setResetError(err?.message || "Failed to reset password. Please try again.");
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  const toggleOtpMode = () => {
+    setIsOtpSent(hasExistingOtp);
+    setHasExistingOtp(!hasExistingOtp);
+    setResetError(null);
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -187,16 +244,132 @@ export default function LoginPage() {
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? "Logging in..." : "Login"}
               </Button>
-              <p className="text-sm text-center text-muted-foreground">
-                Don't have an account?{" "}
-                <Link href="/signup" className="text-primary hover:underline">
-                  Sign up
-                </Link>
-              </p>
+              <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-primary hover:underline"
+                >
+                  Forgot password?
+                </button>
+                <p>
+                  Don't have an account?{" "}
+                  <Link href="/signup" className="text-primary hover:underline">
+                    Sign up
+                  </Link>
+                </p>
+              </div>
             </CardFooter>
           </form>
         </Card>
       </main>
+
+      {/* Forgot Password Dialog */}
+      <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              {!isOtpSent 
+                ? "Enter your email to receive a password reset code."
+                : "Enter the OTP sent to your email and your new password."
+              }
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={!isOtpSent ? handleForgotPassword : handleResetPassword}>
+            <div className="space-y-4 py-4">
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={toggleOtpMode}
+                  className="text-sm text-primary hover:underline"
+                >
+                  {hasExistingOtp 
+                    ? "Request new OTP instead?" 
+                    : "Already have an OTP?"
+                  }
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  disabled={isOtpSent}
+                />
+              </div>
+
+              {(isOtpSent || hasExistingOtp) && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="otp">OTP</Label>
+                    <Input
+                      id="otp"
+                      type="text"
+                      placeholder="Enter OTP"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="newPassword">New Password</Label>
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      placeholder="Enter new password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
+
+              {resetError && (
+                <p className="text-sm text-destructive">{resetError}</p>
+              )}
+            </div>
+
+            <div className="flex justify-end space-x-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowForgotPassword(false);
+                  setIsOtpSent(false);
+                  setHasExistingOtp(false);
+                  setResetError(null);
+                  setForgotEmail("");
+                  setOtp("");
+                  setNewPassword("");
+                }}
+              >
+                Cancel
+              </Button>
+              {hasExistingOtp ? (
+                <Button type="submit" disabled={isResetting}>
+                  {isResetting ? "Resetting..." : "Reset Password"}
+                </Button>
+              ) : (
+                <Button 
+                  type="submit" 
+                  disabled={isResetting}
+                >
+                  {isResetting 
+                    ? "Processing..." 
+                    : !isOtpSent 
+                      ? "Send OTP" 
+                      : "Reset Password"
+                  }
+                </Button>
+              )}
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
