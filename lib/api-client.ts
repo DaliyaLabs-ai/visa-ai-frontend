@@ -180,3 +180,37 @@ export const resetPassword = async (email: string, otp: string, password: string
 
   return response.json();
 };
+
+export const changePassword = async (oldPassword: string, newPassword: string) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/change-password`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+    },
+    body: JSON.stringify({ oldPassword, newPassword }),
+  });
+
+  if (!response.ok) {
+    throw await response.json();
+  }
+
+  return response.json();
+};
+
+export const deleteAccount = async (password: string, reason: string) => {
+  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/delete-account`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+    },
+    body: JSON.stringify({ password, reason }),
+  });
+
+  if (!response.ok) {
+    throw await response.json();
+  }
+
+  return response.json();
+};
