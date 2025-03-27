@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navbar } from "@/components/navbar";
+import { AudioPlayer } from "@/components/ui/audio-player";
 
 interface CredibilityAssessment {
   postStudyPlans: number;
@@ -24,6 +25,10 @@ interface SuccessfulResult {
   weaknessAreas: string[];
   credibilityAssessment: CredibilityAssessment;
   improvementSuggestions: ImprovementSuggestion[];
+  metadata: {
+    recordingUrl: string;
+    stereoRecordingUrl: string;
+  };
 }
 
 interface RejectedResult {
@@ -41,13 +46,23 @@ interface MeetingResult {
   weaknessAreas?: string[];
   credibilityAssessment?: CredibilityAssessment;
   improvementSuggestions?: ImprovementSuggestion[];
+  metadata?: {
+    recordingUrl: string;
+    stereoRecordingUrl: string;
+  };
 }
 
 interface ApiResponse {
   success: boolean;
   data: {
-    result: MeetingResult;
+    id: number;
+    createdAt: string;
+    isActive: boolean;
+    meetingId: string;
+    user: string;
+    rating: number;
     transcript: string;
+    result: MeetingResult;
     metadata: {
       recordingUrl: string;
       stereoRecordingUrl: string;
@@ -60,6 +75,7 @@ export default function MeetingResultPage() {
   const meetingId = params.id as string;
   const [result, setResult] = useState<MeetingResult | null>(null);
   const [transcript, setTranscript] = useState<string>("");
+  const [metadata, setMetadata] = useState<{ recordingUrl: string; stereoRecordingUrl: string } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,6 +96,7 @@ export default function MeetingResultPage() {
         const data: ApiResponse = await response.json();
         setResult(data.data.result);
         setTranscript(data.data.transcript);
+        setMetadata(data.data.metadata);
       } catch (error) {
         console.error('Failed to fetch meeting result:', error);
         setError('Failed to load meeting result');
@@ -143,6 +160,23 @@ export default function MeetingResultPage() {
                 <div className="text-center text-destructive">{error}</div>
               ) : result ? (
                 <div className="space-y-6">
+                  {metadata && (
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="font-semibold mb-3">Interview Recording (Mono)</h3>
+                        <AudioPlayer url={metadata.recordingUrl} />
+                      </div>
+                      
+                      <div>
+                        <h3 className="font-semibold mb-3">Interview Recording (Stereo)</h3>
+                        <AudioPlayer 
+                          url={metadata.stereoRecordingUrl}
+                          className="bg-card/50"
+                        />
+                      </div>
+                    </div>
+                  )}
+
                   {isRejected(result) ? (
                     <div className="space-y-6">
                       <div className="bg-red-950/20 p-6 rounded-lg space-y-4">
