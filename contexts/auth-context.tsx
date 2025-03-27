@@ -1,11 +1,13 @@
 "use client"
 
-import { createContext, useContext, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect } from "react"
 import { auth } from "@/lib/auth"
 import type { User } from "@/types/auth"
 import { useAuth } from "@/hooks/use-auth"
 
-interface AuthContextType {
+export interface AuthContextType {
+  isAuthenticated: boolean
+  isLoading: boolean
   user: User | null
   loading: boolean
   error: string | null
@@ -13,15 +15,26 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<User>
   logout: () => void
   updateUser: (updates: Partial<User>) => User | undefined
-  isAuthenticated: boolean
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AuthContext = createContext<AuthContextType | null>(null)
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { user, loading, error, signup, login, updateUser, isAuthenticated } = useAuth()
+  const [isLoading, setIsLoading] = useState(true)
 
-  console.log("isAuthenticated: ", isAuthenticated)
+  useEffect(() => {
+    // Check localStorage directly during initialization
+    const storedUser = localStorage.getItem('user')
+    const accessToken = localStorage.getItem('accessToken')
+    
+    if (storedUser && accessToken) {
+      const userData = JSON.parse(storedUser)
+      updateUser(userData)
+    }
+    
+    setIsLoading(false)
+  }, [])
 
   const logout = () => {
     auth.clearAuth() // Using the auth utility's clearAuth method
@@ -29,6 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const value = {
+    isAuthenticated,
+    isLoading,
     user,
     loading,
     error,
@@ -36,7 +51,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     logout,
     updateUser,
-    isAuthenticated
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
@@ -44,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuthContext() {
   const context = useContext(AuthContext)
-  if (context === undefined) {
+  if (!context) {
     throw new Error("useAuthContext must be used within an AuthProvider")
   }
   return context

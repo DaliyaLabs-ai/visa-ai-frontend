@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mic, MicOff, Loader2 } from 'lucide-react';
-import useVapi from '@/hooks/use-vapi';
+import { useVapi } from '@/contexts/vapi-context';
  
 const RadialCard: React.FC<{assistantId: string}> = ({ assistantId }) => {
   const { volumeLevel, isSessionActive, toggleCall } = useVapi();

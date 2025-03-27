@@ -1,23 +1,11 @@
 "use client";
-import {
-  createContext,
-  useContext,
-  useRef,
-  useState,
-  useCallback,
-  useEffect,
-} from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 import Vapi from "@vapi-ai/web";
 import { createMeeting, rateMeeting } from "@/lib/api-client";
 
 const publicKey = process.env.NEXT_PUBLIC_VAPI_PUBLIC_KEY || "";
-const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID || "";
 
-// Create context
-const VapiContext = createContext<ReturnType<typeof useVapiState> | null>(null);
-
-// Create a provider hook
-const useVapiState = () => {
+export const useVapiState = () => {
   const [volumeLevel, setVolumeLevel] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -26,8 +14,6 @@ const useVapiState = () => {
   >([]);
   const vapiRef = useRef<any>(null);
   const [callId, setCallId] = useState<string | null>(null);
-
-  console.log("publicKey: ", publicKey);
 
   const initializeAssistant = useCallback((selectedAssistantId: string) => {
     if (vapiRef.current) {
@@ -45,7 +31,7 @@ const useVapiState = () => {
     vapiInstance.on("call-end", async () => {
       setIsSessionActive(false);
       setCallId(null);
-      setConversation([]); // Reset conversation on call end
+      setConversation([]);
     });
 
     vapiInstance.on("volume-level", (volume: number) => {
@@ -58,7 +44,6 @@ const useVapiState = () => {
           const timestamp = new Date().toLocaleTimeString();
           const updatedConversation = [...prev];
           if (message.transcriptType === "final") {
-            // Find the partial message to replace it with the final one
             const partialIndex = updatedConversation.findIndex(
               (msg) => msg.role === message.role && !msg.isFinal
             );
@@ -78,7 +63,6 @@ const useVapiState = () => {
               });
             }
           } else {
-            // Add partial message or update the existing one
             const partialIndex = updatedConversation.findIndex(
               (msg) => msg.role === message.role && !msg.isFinal
             );
@@ -105,7 +89,6 @@ const useVapiState = () => {
         message.functionCall.name === "changeUrl"
       ) {
         const command = message.functionCall.parameters.url.toLowerCase();
-        console.log(command);
         if (command) {
           window.location.href = command;
         } else {
@@ -120,15 +103,12 @@ const useVapiState = () => {
   }, []);
 
   const toggleCall = async (selectedAssistantId: string) => {
-    console.log("toggleCall: ", selectedAssistantId);
     try {
       if (isSessionActive) {
         await rateMeeting(callId as string, 5);
-
         await vapiRef.current.stop();
       } else {
         const callData = await vapiRef.current.start(selectedAssistantId);
-        console.log("setting callId: ", callData.id);
         setCallId(callData.id);
         await createMeeting(callData.id);
       }
@@ -160,7 +140,6 @@ const useVapiState = () => {
     }
   };
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (vapiRef.current) {
@@ -182,23 +161,3 @@ const useVapiState = () => {
     initializeAssistant,
   };
 };
-
-// Create provider component
-export function VapiProvider({ children }: { children: React.ReactNode }) {
-  const vapiState = useVapiState();
-
-  return (
-    <VapiContext.Provider value={vapiState}>{children}</VapiContext.Provider>
-  );
-}
-
-// Export hook to use Vapi context
-const useVapi = () => {
-  const context = useContext(VapiContext);
-  if (!context) {
-    throw new Error("useVapi must be used within a VapiProvider");
-  }
-  return context;
-};
-
-export default useVapi;

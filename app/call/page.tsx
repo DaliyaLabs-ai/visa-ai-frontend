@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import RadialCard from "@/components/call/radial-card";
 import Transcriber from "@/components/call/transcriber";
-import useVapi from "@/hooks/use-vapi";
+import { useVapi } from "@/contexts/vapi-context";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useEffect } from "react";
@@ -19,7 +19,7 @@ export default function AssistantChat() {
   return (
     <main className="h-screen flex flex-col">
       <div className="p-4 border-b">
-        <Link href="/" className="flex gap-5">
+        <Link href="/dashboard" className="flex gap-5">
           <ArrowLeft size={24} />
           <h1 className="text-xl font-semibold">Visa Officer</h1>
         </Link>

@@ -3,7 +3,7 @@
 import { type ReactNode } from "react"
 import { AuthProvider } from "@/contexts/auth-context"
 import { ThemeProvider } from "@/components/theme-provider"
-import { VapiProvider } from "@/hooks/use-vapi"
+import { VapiProvider } from "@/contexts/vapi-context"
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
