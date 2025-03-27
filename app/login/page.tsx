@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useAuthContext } from "@/contexts/auth-context"
 import { useNavigation } from "@/hooks/use-navigation"
 import { useFormValidation } from "@/hooks/use-form-validation"
@@ -69,6 +69,12 @@ export default function LoginPage() {
   const [isResetting, setIsResetting] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
   const [hasExistingOtp, setHasExistingOtp] = useState(false);
+
+  useEffect(() => {
+    if (localStorage.getItem('accessToken')) {
+      router.push('/dashboard')
+    }
+  }, [router])
 
   const initialValues: LoginFormValues = {
     email: "",
@@ -163,7 +169,7 @@ export default function LoginPage() {
     try {
       await forgotPassword(forgotEmail);
       setIsOtpSent(true);
-    } catch (err) {
+    } catch (err: any) {
       setResetError(err?.message || "Failed to send OTP. Please try again.");
     } finally {
       setIsResetting(false);
@@ -184,7 +190,7 @@ export default function LoginPage() {
       setForgotEmail("");
       setOtp("");
       setNewPassword("");
-    } catch (err) {
+    } catch (err: any) {
       setResetError(err?.message || "Failed to reset password. Please try again.");
     } finally {
       setIsResetting(false);

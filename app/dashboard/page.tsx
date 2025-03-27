@@ -16,9 +16,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      // navigateToLogin()
-      // do nothing now
-      navigateToOnboarding()
+      navigateToLogin()
     } else if (user?.userType === "student" && !user.isOnboarded) {
       navigateToOnboarding()
     }

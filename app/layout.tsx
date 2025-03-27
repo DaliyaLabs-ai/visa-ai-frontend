@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import Script from "next/script";
+import { ENV } from "@/types/config";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -11,6 +12,8 @@ export const metadata: Metadata = {
   title: "F1 Visa Interview Preparation",
   description: "Practice your F1 visa interview with AI agents",
 };
+
+const env = process.env.NEXT_PUBLIC_ENV as ENV;
 
 export default function RootLayout({
   children,
@@ -23,12 +26,14 @@ export default function RootLayout({
         <Providers>
           {children}
         </Providers>
-        <Script
-          defer
-          src="https://static.cloudflareinsights.com/beacon.min.js"
-          data-cf-beacon='{"token": "6f790026613e4d2183bea6a8b89b00f2"}'
-          strategy="afterInteractive"
-        />
+        { env === "production" && (
+          <Script
+            defer
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon='{"token": "6f790026613e4d2183bea6a8b89b00f2"}'
+            strategy="afterInteractive"
+          />
+        )}
       </body>
     </html>
   );
