@@ -90,6 +90,7 @@ export default function SignupPage() {
         password: form.values.password,
         password2: form.values.password,
         fullName: form.values.name,
+        userType: form.values.userType,
       })
 
       await signup(form.values.email, form.values.password, form.values.name, form.values.userType)

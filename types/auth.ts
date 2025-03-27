@@ -3,6 +3,7 @@ export interface RegisterData {
   password: string
   password2: string
   fullName: string
+  userType: UserType
 }
 
 export interface LoginData {

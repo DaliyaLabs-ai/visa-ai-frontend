@@ -18,12 +18,29 @@ interface ImprovementSuggestion {
   yourResponse: string;
 }
 
-interface MeetingResult {
+interface SuccessfulResult {
   analysis: string;
   overallScore: number;
   weaknessAreas: string[];
   credibilityAssessment: CredibilityAssessment;
   improvementSuggestions: ImprovementSuggestion[];
+}
+
+interface RejectedResult {
+  visaStatus: "rejected";
+  assessmentStatus: false;
+  assessmentFailedReason: string;
+}
+
+interface MeetingResult {
+  visaStatus?: "rejected";
+  assessmentStatus?: false;
+  assessmentFailedReason?: string;
+  analysis?: string;
+  overallScore?: number;
+  weaknessAreas?: string[];
+  credibilityAssessment?: CredibilityAssessment;
+  improvementSuggestions?: ImprovementSuggestion[];
 }
 
 interface ApiResponse {
@@ -104,6 +121,10 @@ export default function MeetingResultPage() {
     </div>
   );
 
+  const isRejected = (result: MeetingResult | null): result is RejectedResult => {
+    return result?.visaStatus === "rejected" && result?.assessmentStatus === false;
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -122,45 +143,71 @@ export default function MeetingResultPage() {
                 <div className="text-center text-destructive">{error}</div>
               ) : result ? (
                 <div className="space-y-6">
-                  {/* Scores Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                    <ScoreCard label="Overall Score" score={result.overallScore} />
-                    <ScoreCard label="Post Study Plans" score={result.credibilityAssessment.postStudyPlans} />
-                    <ScoreCard label="Academic Clarity" score={result.credibilityAssessment.academicClarity} />
-                    <ScoreCard label="Intent Genuineness" score={result.credibilityAssessment.intentGenuineness} />
-                    <ScoreCard label="Ties to Home" score={result.credibilityAssessment.tiesToHomeCountry} />
-                    <ScoreCard label="Financial Stability" score={result.credibilityAssessment.financialStability} />
-                  </div>
+                  {isRejected(result) ? (
+                    <div className="space-y-6">
+                      <div className="bg-red-950/20 p-6 rounded-lg space-y-4">
+                        <div className="flex items-center justify-center">
+                          <div className="text-xl font-semibold text-red-500">
+                            Interview Assessment Failed
+                          </div>
+                        </div>
+                        <p className="text-center">
+                          {result.assessmentFailedReason}
+                        </p>
+                      </div>
 
-                  {/* Analysis */}
-                  <div className="mt-8">
-                    <h3 className="font-semibold mb-3">Analysis</h3>
-                    <p className="bg-muted/30 p-4 rounded-lg">{result.analysis}</p>
-                  </div>
+                      <div className="mt-8">
+                        <h3 className="font-semibold mb-3">Interview Transcript</h3>
+                        <pre className="bg-muted/30 p-4 rounded-lg whitespace-pre-wrap font-mono text-sm">
+                          {transcript}
+                        </pre>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                        <ScoreCard label="Overall Score" score={result.overallScore!} />
+                        <ScoreCard 
+                          label="Post Study Plans" 
+                          score={result.credibilityAssessment!.postStudyPlans} 
+                        />
+                        <ScoreCard label="Academic Clarity" score={result.credibilityAssessment!.academicClarity} />
+                        <ScoreCard label="Intent Genuineness" score={result.credibilityAssessment!.intentGenuineness} />
+                        <ScoreCard label="Ties to Home" score={result.credibilityAssessment!.tiesToHomeCountry} />
+                        <ScoreCard label="Financial Stability" score={result.credibilityAssessment!.financialStability} />
+                      </div>
 
-                  {/* Transcript */}
-                  <div className="mt-8">
-                    <h3 className="font-semibold mb-3">Interview Transcript</h3>
-                    <pre className="bg-muted/30 p-4 rounded-lg whitespace-pre-wrap font-mono text-sm">
-                      {transcript}
-                    </pre>
-                  </div>
+                      <div className="mt-8">
+                        <h3 className="font-semibold mb-3">Analysis</h3>
+                        <p className="bg-muted/30 p-4 rounded-lg">{result.analysis}</p>
+                      </div>
 
-                  {/* Weakness Areas */}
-                  <div className="mt-6">
-                    <h3 className="font-semibold mb-3">Areas for Improvement</h3>
-                    <ul className="bg-red-950/20 rounded-lg p-4 space-y-2">
-                      {result.weaknessAreas.map((item, index) => (
-                        <li key={index} className="flex items-start">
-                          <span className="mr-2">•</span>
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                      <div className="mt-8">
+                        <h3 className="font-semibold mb-3">Interview Transcript</h3>
+                        <pre className="bg-muted/30 p-4 rounded-lg whitespace-pre-wrap font-mono text-sm">
+                          {transcript}
+                        </pre>
+                      </div>
 
-                  {/* Response Comparisons */}
-                  <ComparisonSection suggestions={result.improvementSuggestions} />
+                      {result.weaknessAreas && (
+                        <div className="mt-6">
+                          <h3 className="font-semibold mb-3">Areas for Improvement</h3>
+                          <ul className="bg-red-950/20 rounded-lg p-4 space-y-2">
+                            {result.weaknessAreas.map((item, index) => (
+                              <li key={index} className="flex items-start">
+                                <span className="mr-2">•</span>
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {result.improvementSuggestions && (
+                        <ComparisonSection suggestions={result.improvementSuggestions} />
+                      )}
+                    </>
+                  )}
                 </div>
               ) : (
                 <div className="text-center text-muted-foreground">
